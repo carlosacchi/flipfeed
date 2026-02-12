@@ -191,8 +191,8 @@
         }
 
         btn.addEventListener('click', () => zapChannel(ch));
-      } else if (channelPageUrl) {
-        // empty slot on a channel page → "Add current channel"
+      } else {
+        // empty slot → "Add channel"
         btn.classList.add('ff-add-btn');
 
         const plusIcon = document.createElement('span');
@@ -205,13 +205,13 @@
         label.textContent = 'Add channel';
         btn.appendChild(label);
 
-        btn.addEventListener('click', () => addCurrentChannel(channelPageUrl, absoluteIdx, btn));
-      } else {
-        btn.classList.add('ff-empty');
-        const empty = document.createElement('span');
-        empty.className = 'ff-name';
-        empty.textContent = `Slot ${absoluteIdx + 1}`;
-        btn.appendChild(empty);
+        if (channelPageUrl) {
+          btn.addEventListener('click', () => addCurrentChannel(channelPageUrl, absoluteIdx, btn));
+        } else {
+          btn.addEventListener('click', () => {
+            chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+          });
+        }
       }
 
       grid.appendChild(btn);
