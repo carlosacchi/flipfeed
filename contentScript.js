@@ -32,6 +32,15 @@
     if (msg.type === 'TOGGLE_WIDGET') toggleWidget();
   });
 
+  // --------------- auto-refresh on storage changes (e.g. from options page) ---------------
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== 'sync' && area !== 'local') return;
+    const relevant = FF_CONFIG.STORAGE_KEYS.some(k => k in changes);
+    if (!relevant) return;
+    await loadSettings();
+    if (widgetVisible) render();
+  });
+
   // --------------- widget lifecycle ---------------
   function toggleWidget() {
     widgetVisible ? hideWidget() : showWidget();
