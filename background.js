@@ -96,6 +96,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 // --------------- zap logic ---------------
 async function handleZap(channel, openMode, zapAction, currentTab) {
+  if (!channel || !channel.url || !channel.url.trim()) {
+    return { error: 'Channel has no valid URL' };
+  }
+
   if (zapAction === 'channelPage') {
     const channelUrl = channel.url.replace(/\/$/, '') + '/videos?view=0&sort=dd&flow=grid';
     await openUrl(channelUrl, openMode, currentTab);
@@ -122,7 +126,7 @@ async function handleZap(channel, openMode, zapAction, currentTab) {
   return { ok: true, fallback: 'channel_page' };
 }
 
-// F07: concurrent duration checks with early exit (batch of 3)
+// Concurrent duration checks with early-win: resolves as soon as any video in batch qualifies
 async function findLatestNonShort(channelId) {
   const entries = await fetchRSS(channelId);
   const candidates = entries.slice(0, 10);
@@ -130,16 +134,29 @@ async function findLatestNonShort(channelId) {
   const CONCURRENCY = 3;
   for (let i = 0; i < candidates.length; i += CONCURRENCY) {
     const batch = candidates.slice(i, i + CONCURRENCY);
-    const results = await Promise.all(
-      batch.map(async (entry) => {
-        const seconds = await fetchDuration(entry.videoId);
-        return { videoId: entry.videoId, seconds };
-      })
-    );
-    for (const r of results) {
-      if (r.seconds !== null && r.seconds > 61) {
-        return `https://www.youtube.com/watch?v=${r.videoId}`;
-      }
+
+    // Race: resolve immediately when any candidate qualifies (> 61s)
+    const winner = await new Promise((resolve) => {
+      let pending = batch.length;
+      const settled = [];
+
+      batch.forEach((entry, idx) => {
+        fetchDuration(entry.videoId).then((seconds) => {
+          if (seconds !== null && seconds > 61) {
+            resolve(entry.videoId); // early win
+            return;
+          }
+          settled[idx] = { videoId: entry.videoId, seconds };
+          if (--pending === 0) resolve(null); // no winner in this batch
+        }).catch(() => {
+          settled[idx] = null;
+          if (--pending === 0) resolve(null);
+        });
+      });
+    });
+
+    if (winner) {
+      return `https://www.youtube.com/watch?v=${winner}`;
     }
   }
 
@@ -236,20 +253,32 @@ async function openUrl(url, openMode, currentTab) {
   }
   if (openMode === 'newTab') {
     await chrome.tabs.create({ url });
-  } else if (currentTab && currentTab.id) {
-    await chrome.tabs.update(currentTab.id, { url });
-  } else {
-    await chrome.tabs.create({ url });
+    return { opened: 'newTab' };
   }
+  if (currentTab && currentTab.id) {
+    await chrome.tabs.update(currentTab.id, { url });
+    return { opened: 'sameTab' };
+  }
+  // sameTab requested but no current tab available — fall back to new tab
+  console.warn('[FlipFeed] sameTab requested but no active tab found; opening in new tab');
+  await chrome.tabs.create({ url });
+  return { opened: 'newTab', fallbackReason: 'no_active_tab' };
 }
 
 // --------------- channel resolver ---------------
+const CHANNEL_PATH_RE = /^\/(@[\w.-]+|channel\/UC[\w-]+|c\/[\w.-]+|user\/[\w.-]+)(\/.*)?$/;
+
 async function resolveChannel(inputUrl) {
   let url = inputUrl.trim();
   if (!url.startsWith('http')) url = 'https://www.youtube.com/' + url.replace(/^\/+/, '');
 
   if (!isYouTubeUrl(url)) {
     throw new Error('Only YouTube URLs are supported');
+  }
+
+  const parsed = new URL(url);
+  if (!CHANNEL_PATH_RE.test(parsed.pathname)) {
+    throw new Error('URL does not look like a YouTube channel (expected @handle, /channel/UC..., /c/..., or /user/...)');
   }
 
   const directMatch = url.match(/\/channel\/(UC[\w-]+)/);

@@ -76,12 +76,15 @@
   }
 
   // --------------- DOM host + shadow ---------------
+  let styleAttached = false;
+
   function ensureHost() {
     if (hostEl) return;
     hostEl = document.createElement('flipfeed-widget');
     hostEl.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:2147483647;display:none;';
     shadowRoot = hostEl.attachShadow({ mode: 'closed' });
     document.documentElement.appendChild(hostEl);
+    styleAttached = false;
   }
 
   // --------------- detect if on a channel page ---------------
@@ -94,11 +97,16 @@
 
   // --------------- render ---------------
   function render() {
-    shadowRoot.innerHTML = '';
-
-    const style = document.createElement('style');
-    style.textContent = getCSS();
-    shadowRoot.appendChild(style);
+    // Attach stylesheet once; only rebuild content
+    if (!styleAttached) {
+      const style = document.createElement('style');
+      style.textContent = getCSS();
+      shadowRoot.appendChild(style);
+      styleAttached = true;
+    }
+    // Remove previous content container (keep <style>)
+    const oldContainer = shadowRoot.querySelector('.ff-container');
+    if (oldContainer) oldContainer.remove();
 
     const container = document.createElement('div');
     container.className = 'ff-container';
@@ -145,8 +153,8 @@
       const btn = document.createElement('button');
       btn.className = 'ff-channel-btn';
 
-      if (ch && (ch.displayName || ch.url)) {
-        // filled slot
+      if (ch && ch.url && ch.url.trim()) {
+        // filled slot with valid URL
         const img = document.createElement('img');
         img.className = 'ff-avatar';
         img.src = isSafeImageUrl(ch.iconUrl) ? ch.iconUrl : 'data:image/svg+xml,' + encodeURIComponent(placeholderSVG(i));
@@ -237,7 +245,24 @@
   // --------------- zap ---------------
   function zapChannel(channel) {
     hideWidget();
-    chrome.runtime.sendMessage({ type: 'ZAP_CHANNEL', channel, openMode, zapAction });
+    chrome.runtime.sendMessage({ type: 'ZAP_CHANNEL', channel, openMode, zapAction }, (result) => {
+      if (chrome.runtime.lastError) {
+        showToast('Zap failed: ' + chrome.runtime.lastError.message);
+        return;
+      }
+      if (result && result.error) {
+        showToast('Zap failed: ' + result.error);
+      }
+    });
+  }
+
+  function showToast(message) {
+    ensureHost();
+    const toast = document.createElement('div');
+    toast.className = 'ff-toast';
+    toast.textContent = message;
+    shadowRoot.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
 
   // --------------- add current channel ---------------
@@ -516,6 +541,21 @@
         animation: ff-spin 0.6s linear infinite;
       }
       @keyframes ff-spin { to { transform: rotate(360deg); } }
+
+      .ff-toast {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: #b71c1c;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        z-index: 2147483647;
+        animation: ff-toast-in 0.2s ease-out;
+      }
+      @keyframes ff-toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     `;
   }
 })();

@@ -34,14 +34,14 @@ function isSafeImageUrl(url) {
 }
 
 // --------------- storage helpers with sync→local fallback ---------------
+// Each operation independently tries sync first; no sticky per-context flag.
+// set() writes to both backends for cross-context consistency.
+// remove() cleans both backends to avoid stale keys.
 const ffStorage = {
-  _useFallback: false,
-
   async get(keys) {
     return new Promise((resolve) => {
       chrome.storage.sync.get(keys, (data) => {
         if (chrome.runtime.lastError) {
-          ffStorage._useFallback = true;
           chrome.storage.local.get(keys, (localData) => {
             resolve({ data: localData || {}, fallback: true });
           });
@@ -53,31 +53,40 @@ const ffStorage = {
   },
 
   async set(obj) {
-    const area = ffStorage._useFallback ? chrome.storage.local : chrome.storage.sync;
     return new Promise((resolve, reject) => {
-      area.set(obj, () => {
+      chrome.storage.sync.set(obj, () => {
         if (chrome.runtime.lastError) {
-          // If sync failed, try local as last resort
-          if (!ffStorage._useFallback) {
-            ffStorage._useFallback = true;
-            chrome.storage.local.set(obj, () => {
-              if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-              else resolve({ fallback: true });
-            });
-          } else {
-            reject(new Error(chrome.runtime.lastError.message));
-          }
+          // Sync failed — write to local as primary
+          chrome.storage.local.set(obj, () => {
+            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+            else resolve({ fallback: true });
+          });
         } else {
-          resolve({ fallback: ffStorage._useFallback });
+          // Sync succeeded — mirror to local for cross-context consistency
+          chrome.storage.local.set(obj, () => { /* best-effort */ });
+          resolve({ fallback: false });
         }
       });
     });
   },
 
   async remove(key) {
-    const area = ffStorage._useFallback ? chrome.storage.local : chrome.storage.sync;
-    return new Promise((resolve) => {
-      area.remove(key, () => resolve());
+    return new Promise((resolve, reject) => {
+      let errors = [];
+      let done = 0;
+      const finish = () => {
+        if (++done < 2) return;
+        if (errors.length === 2) reject(new Error(errors.join('; ')));
+        else resolve();
+      };
+      chrome.storage.sync.remove(key, () => {
+        if (chrome.runtime.lastError) errors.push('sync: ' + chrome.runtime.lastError.message);
+        finish();
+      });
+      chrome.storage.local.remove(key, () => {
+        if (chrome.runtime.lastError) errors.push('local: ' + chrome.runtime.lastError.message);
+        finish();
+      });
     });
   }
 };

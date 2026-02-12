@@ -58,7 +58,7 @@
         <span class="slot-num">${i + 1}</span>
         <input type="text" class="ch-url" value="${escHtml(ch.url || '')}" placeholder="YouTube URL or @handle">
         <div class="ch-info">
-          ${ch.iconUrl ? `<img class="ch-avatar" src="${escHtml(ch.iconUrl)}" alt="">` : ''}
+          ${ch.iconUrl && isSafeImageUrl(ch.iconUrl) ? `<img class="ch-avatar" src="${escHtml(ch.iconUrl)}" alt="">` : ''}
           <span class="ch-name">${escHtml(ch.displayName || '')}</span>
         </div>
         <button class="btn btn-small btn-resolve" data-idx="${i}">Resolve</button>
@@ -230,7 +230,7 @@
     zapAction = document.querySelector('input[name="zapAction"]:checked')?.value || FF_CONFIG.DEFAULTS.zapAction;
     gridSize = document.querySelector('input[name="gridSize"]:checked')?.value || FF_CONFIG.DEFAULTS.gridSize;
 
-    const cleanChannels = channels.filter(Boolean);
+    const cleanChannels = channels.filter(ch => ch && ch.url && ch.url.trim());
 
     try {
       const result = await ffStorage.set({ channels: cleanChannels, keyMap, openMode, zapAction, gridSize });
@@ -253,6 +253,7 @@
   }
 
   function escHtml(str) {
+    if (typeof str !== 'string') return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
