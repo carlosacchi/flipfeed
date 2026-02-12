@@ -41,6 +41,11 @@
     if (widgetVisible) render();
   });
 
+  // --------------- re-render on YouTube SPA navigation ---------------
+  document.addEventListener('yt-navigate-finish', () => {
+    if (widgetVisible) render();
+  });
+
   // --------------- widget lifecycle ---------------
   function toggleWidget() {
     widgetVisible ? hideWidget() : showWidget();
@@ -194,28 +199,33 @@
         }
 
         btn.addEventListener('click', () => zapChannel(ch));
-      } else if (channelPageUrl) {
-        // empty slot on a channel page → "Add current channel"
-        btn.classList.add('ff-add-btn');
-
-        const plusIcon = document.createElement('span');
-        plusIcon.className = 'ff-plus-icon';
-        plusIcon.textContent = '+';
-        btn.appendChild(plusIcon);
-
-        const label = document.createElement('span');
-        label.className = 'ff-name';
-        label.textContent = 'Add channel';
-        btn.appendChild(label);
-
-        btn.addEventListener('click', () => addCurrentChannel(channelPageUrl, absoluteIdx, btn));
       } else {
-        // empty slot (not on a channel page)
-        btn.classList.add('ff-empty');
-        const empty = document.createElement('span');
-        empty.className = 'ff-name';
-        empty.textContent = `Slot ${absoluteIdx + 1}`;
-        btn.appendChild(empty);
+        // empty slot — show "Add channel" if on a channel page, otherwise empty
+        if (channelPageUrl) {
+          btn.classList.add('ff-add-btn');
+
+          const plusIcon = document.createElement('span');
+          plusIcon.className = 'ff-plus-icon';
+          plusIcon.textContent = '+';
+          btn.appendChild(plusIcon);
+
+          const label = document.createElement('span');
+          label.className = 'ff-name';
+          label.textContent = 'Add channel';
+          btn.appendChild(label);
+        } else {
+          btn.classList.add('ff-empty');
+          const empty = document.createElement('span');
+          empty.className = 'ff-name';
+          empty.textContent = `Slot ${absoluteIdx + 1}`;
+          btn.appendChild(empty);
+        }
+
+        // Read URL fresh at click time (not stale closure from render)
+        btn.addEventListener('click', () => {
+          const freshUrl = detectChannelUrl();
+          if (freshUrl) addCurrentChannel(freshUrl, absoluteIdx, btn);
+        });
       }
 
       grid.appendChild(btn);

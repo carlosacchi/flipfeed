@@ -2,6 +2,17 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.4.8] — 2026-02-12
+
+### Added
+- Options page auto-refreshes when storage changes externally (e.g. channel added from widget). Bidirectional live sync between widget and options.
+
+## [1.4.7] — 2026-02-12
+
+### Fixed
+- "Add channel" now reads the current URL at click time instead of using a stale closure from render time. Fixes the bug where navigating from channel A to channel B and clicking "Add channel" would still try to add channel A.
+- Widget re-renders on YouTube SPA navigation (`yt-navigate-finish`), so empty slots correctly update between "Add channel" and "Slot N" when moving between channel pages and other pages.
+
 ## [1.4.6] — 2026-02-12
 
 ### Changed

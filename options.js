@@ -279,6 +279,26 @@
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // --------------- auto-refresh on external storage changes (e.g. from widget) ---------------
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== 'sync' && area !== 'local') return;
+    const relevant = FF_CONFIG.STORAGE_KEYS.some(k => k in changes);
+    if (!relevant) return;
+
+    await load();
+
+    const r1 = document.querySelector(`input[name="openMode"][value="${openMode}"]`);
+    if (r1) r1.checked = true;
+    const r2 = document.querySelector(`input[name="zapAction"][value="${zapAction}"]`);
+    if (r2) r2.checked = true;
+    const r3 = document.querySelector(`input[name="gridSize"][value="${gridSize}"]`);
+    if (r3) r3.checked = true;
+
+    renderChannels();
+    renderKeyMap();
+    flash('Settings updated externally');
+  });
+
   // --------------- init ---------------
   async function init() {
     versionEl.textContent = 'v' + chrome.runtime.getManifest().version;
