@@ -1,0 +1,77 @@
+# Builds Chrome Web Store package and optionally publishes it.
+#
+# Triggers:
+#   - Push a tag like v1.3.0  → builds ZIP, creates GitHub Release, uploads to CWS
+#   - Manual dispatch          → same, pick any ref
+#
+# Secrets needed for auto-publish (optional):
+#   CHROME_EXTENSION_ID   – your extension ID from CWS dashboard
+#   CHROME_CLIENT_ID      – OAuth2 client ID
+#   CHROME_CLIENT_SECRET  – OAuth2 client secret
+#   CHROME_REFRESH_TOKEN  – OAuth2 refresh token
+#
+# Without secrets the workflow still produces the ZIP as a GitHub Release artifact.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_CWS_SECRETS: ${{ secrets.CHROME_CLIENT_ID != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest
+        id: meta
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "zip_name=flipfeed-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Build ZIP
+        run: |
+          zip -r "${{ steps.meta.outputs.zip_name }}" \
+            manifest.json \
+            background.js \
+            shared.js \
+            contentScript.js \
+            options.html \
+            options.js \
+            options.css \
+            assets/icon16.png \
+            assets/icon48.png \
+            assets/icon128.png
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.zip_name }}
+          path: ${{ steps.meta.outputs.zip_name }}
+
+      # ── GitHub Release (on tag push) ──────────────────────────
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.meta.outputs.zip_name }}
+          generate_release_notes: true
+
+      # ── Chrome Web Store upload (only if secrets are configured) ──
+      - name: Publish to Chrome Web Store
+        if: startsWith(github.ref, 'refs/tags/') && env.HAS_CWS_SECRETS == 'true'
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        with:
+          file-path: ${{ steps.meta.outputs.zip_name }}
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
