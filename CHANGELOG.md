@@ -2,6 +2,21 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.5.0] — 2026-02-12
+
+### Added
+- **"Set as my defaults"** button in Options: saves current channels and settings as a personal snapshot.
+- **"Reset to my defaults"** button: restores the saved personal snapshot (disabled if none saved).
+- **"Reset to factory"** button: restores the original hardcoded default channels and settings.
+
+### Changed
+- Old "Reset to defaults" button replaced with the two-tier reset system (personal defaults + factory).
+
+## [1.4.9] — 2026-02-12
+
+### Added
+- When on a channel page and the last widget page is full, an extra page is available with empty "Add channel" slots, allowing unlimited channel additions directly from the widget.
+
 ## [1.4.8] — 2026-02-12
 
 ### Added

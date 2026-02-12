@@ -224,15 +224,57 @@
     channelsList.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // --------------- reset to defaults ---------------
+  // --------------- set as my defaults ---------------
+  const setDefaultsBtn = document.getElementById('set-defaults');
+  setDefaultsBtn.addEventListener('click', () => {
+    const cleanChannels = channels.filter(ch => ch && ch.url && ch.url.trim());
+    const snapshot = {
+      channels: cleanChannels.map(ch => ({ ...ch })),
+      keyMap: { ...keyMap },
+      openMode: document.querySelector('input[name="openMode"]:checked')?.value || openMode,
+      zapAction: document.querySelector('input[name="zapAction"]:checked')?.value || zapAction,
+      gridSize: document.querySelector('input[name="gridSize"]:checked')?.value || gridSize
+    };
+    chrome.storage.local.set({ customDefaults: snapshot }, () => {
+      flash('Current config saved as your defaults');
+      updateResetBtnState();
+    });
+  });
+
+  // --------------- reset to my defaults ---------------
   const resetBtn = document.getElementById('reset-defaults');
   resetBtn.addEventListener('click', () => {
-    if (!confirm('Replace all channels and settings with defaults?')) return;
-    channels = FF_DEFAULT_CHANNELS.map(ch => ({ ...ch }));
-    keyMap = { ...FF_DEFAULT_KEY_MAP };
-    openMode = FF_CONFIG.DEFAULTS.openMode;
-    zapAction = FF_CONFIG.DEFAULTS.zapAction;
-    gridSize = FF_CONFIG.DEFAULTS.gridSize;
+    chrome.storage.local.get('customDefaults', (result) => {
+      if (!result.customDefaults) {
+        flash('No custom defaults saved yet', true);
+        return;
+      }
+      if (!confirm('Replace current settings with your saved defaults?')) return;
+      applySnapshot(result.customDefaults);
+      flash('Your defaults restored — click Save to persist');
+    });
+  });
+
+  // --------------- reset to factory ---------------
+  const resetFactoryBtn = document.getElementById('reset-factory');
+  resetFactoryBtn.addEventListener('click', () => {
+    if (!confirm('Replace all channels and settings with factory defaults?')) return;
+    applySnapshot({
+      channels: FF_DEFAULT_CHANNELS.map(ch => ({ ...ch })),
+      keyMap: { ...FF_DEFAULT_KEY_MAP },
+      openMode: FF_CONFIG.DEFAULTS.openMode,
+      zapAction: FF_CONFIG.DEFAULTS.zapAction,
+      gridSize: FF_CONFIG.DEFAULTS.gridSize
+    });
+    flash('Factory defaults restored — click Save to persist');
+  });
+
+  function applySnapshot(snap) {
+    channels = (snap.channels || []).map(ch => ({ ...ch }));
+    keyMap = { ...snap.keyMap };
+    openMode = snap.openMode || FF_CONFIG.DEFAULTS.openMode;
+    zapAction = snap.zapAction || FF_CONFIG.DEFAULTS.zapAction;
+    gridSize = snap.gridSize || FF_CONFIG.DEFAULTS.gridSize;
 
     const r1 = document.querySelector(`input[name="openMode"][value="${openMode}"]`);
     if (r1) r1.checked = true;
@@ -243,8 +285,14 @@
 
     renderChannels();
     renderKeyMap();
-    flash('Defaults restored — click Save to persist');
-  });
+  }
+
+  function updateResetBtnState() {
+    chrome.storage.local.get('customDefaults', (result) => {
+      resetBtn.disabled = !result.customDefaults;
+      resetBtn.title = result.customDefaults ? 'Restore your saved defaults' : 'No custom defaults saved yet';
+    });
+  }
 
   // --------------- save ---------------
   saveBtn.addEventListener('click', async () => {
@@ -314,6 +362,7 @@
 
     renderChannels();
     renderKeyMap();
+    updateResetBtnState();
   }
 
   init();

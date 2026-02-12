@@ -234,7 +234,11 @@
     container.appendChild(grid);
 
     // pagination footer
-    const tp = totalPages();
+    // When on a channel page and last page is full, allow one extra page for "Add channel" slots
+    const baseTp = totalPages();
+    const lastPageFull = channels.length > 0 && channels.length % slotsPerPage() === 0;
+    const tp = (channelPageUrl && lastPageFull) ? baseTp + 1 : baseTp;
+
     if (tp > 1 || channels.length > 0) {
       const footer = document.createElement('div');
       footer.className = 'ff-footer';

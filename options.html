@@ -28,9 +28,11 @@
       <h2>Channels</h2>
       <p class="hint">Paste a YouTube URL (<code>@handle</code>, <code>/channel/UC...</code>, or vanity URL) and click Resolve. Drag to reorder.</p>
       <div id="channels-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
         <button id="add-channel" class="btn btn-secondary">+ Add channel</button>
-        <button id="reset-defaults" class="btn btn-small btn-reset">Reset to defaults</button>
+        <button id="set-defaults" class="btn btn-small btn-set-defaults">Set as my defaults</button>
+        <button id="reset-defaults" class="btn btn-small btn-reset">Reset to my defaults</button>
+        <button id="reset-factory" class="btn btn-small btn-reset">Reset to factory</button>
       </div>
     </section>
 

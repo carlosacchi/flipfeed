@@ -231,6 +231,13 @@ input[type="text"]:focus {
 }
 .btn-reset:hover { border-color: #ff4444; color: #ccc; }
 
+.btn-set-defaults {
+  background: transparent;
+  border: 1px solid #555;
+  color: #888;
+}
+.btn-set-defaults:hover { border-color: #4caf50; color: #ccc; }
+
 /* Key map */
 .keymap-row {
   display: flex;
