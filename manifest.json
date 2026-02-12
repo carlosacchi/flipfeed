@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "FlipFeed — Video zapping for YouTube",
+  "version": "1.3.0",
+  "description": "Zap between YouTube channels with a quick overlay widget. Configure your favorite channels and switch instantly.",
+  "permissions": [
+    "storage",
+    "commands",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["shared.js", "contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "toggle-widget": {
+      "suggested_key": {
+        "default": "Alt+Z",
+        "mac": "Alt+Z"
+      },
+      "description": "Show/hide the FlipFeed zapping widget"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  }
+}

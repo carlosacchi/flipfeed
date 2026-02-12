@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlipFeed — Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FlipFeed <span id="version" class="version"></span></h1>
+      <p class="subtitle">Video zapping for YouTube</p>
+    </header>
+
+    <section class="section">
+      <h2>Channels</h2>
+      <p class="hint">Paste a YouTube URL (<code>@handle</code>, <code>/channel/UC...</code>, or vanity URL) and click Resolve. Drag to reorder.</p>
+      <div id="channels-list"></div>
+      <button id="add-channel" class="btn btn-secondary" style="margin-top:8px">+ Add channel</button>
+    </section>
+
+    <section class="section">
+      <h2>Grid size</h2>
+      <p class="hint">Number of channel slots visible per page in the overlay. Channels beyond this limit flow to the next page automatically.</p>
+      <div class="radio-group">
+        <label><input type="radio" name="gridSize" value="3x3"> 3 &times; 3 (9)</label>
+        <label><input type="radio" name="gridSize" value="3x4"> 3 &times; 4 (12)</label>
+        <label><input type="radio" name="gridSize" value="3x5"> 3 &times; 5 (15)</label>
+        <label><input type="radio" name="gridSize" value="3x6"> 3 &times; 6 (18)</label>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Zap action</h2>
+      <p class="hint">What happens when you select a channel.</p>
+      <div class="radio-group">
+        <label><input type="radio" name="zapAction" value="latestVideo"> Open latest video (skip Shorts)</label>
+        <label><input type="radio" name="zapAction" value="channelPage"> Open channel page</label>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Open mode</h2>
+      <div class="radio-group">
+        <label><input type="radio" name="openMode" value="sameTab"> Same tab (default)</label>
+        <label><input type="radio" name="openMode" value="newTab"> New tab</label>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Key mapping</h2>
+      <p class="hint">Map keyboard keys to slot positions on the current overlay page.</p>
+      <div id="keymap-list"></div>
+    </section>
+
+    <div class="actions">
+      <button id="save" class="btn btn-primary">Save settings</button>
+      <span id="status" class="status"></span>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

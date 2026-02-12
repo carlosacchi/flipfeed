@@ -1,0 +1,256 @@
+/* FlipFeed — Options page styles */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #121212;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+header {
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: 28px;
+  color: #ff4444;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.version {
+  font-size: 13px;
+  color: #666;
+  font-weight: 400;
+}
+
+.subtitle {
+  color: #888;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #ddd;
+}
+
+.hint {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.hint code {
+  background: #2a2a2a;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.section {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Channel rows */
+.channel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: #252525;
+  border-radius: 8px;
+  border: 1px solid #333;
+  flex-wrap: wrap;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.channel-row.dragging { opacity: 0.4; }
+.channel-row.drag-over { border-color: #ff4444; }
+
+.drag-handle {
+  cursor: grab;
+  color: #555;
+  font-size: 14px;
+  flex-shrink: 0;
+  user-select: none;
+  padding: 0 2px;
+}
+.drag-handle:hover { color: #aaa; }
+
+.channel-row .slot-num {
+  font-weight: 700;
+  color: #888;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.channel-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.channel-row .ch-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.channel-row .ch-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #444;
+  object-fit: cover;
+}
+
+.channel-row .ch-name {
+  font-size: 12px;
+  color: #aaa;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Inputs */
+input[type="text"] {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus {
+  border-color: #ff4444;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.btn-primary {
+  background: #ff4444;
+  color: #fff;
+}
+.btn-primary:hover { background: #e03e3e; }
+
+.btn-secondary {
+  background: #333;
+  color: #ccc;
+}
+.btn-secondary:hover:not(:disabled) { background: #444; }
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.btn-resolve {
+  background: #2e7d32;
+  color: #fff;
+}
+.btn-resolve:hover { background: #388e3c; }
+
+.btn-remove {
+  background: #555;
+  color: #ccc;
+}
+.btn-remove:hover { background: #c62828; color: #fff; }
+
+/* Key map */
+.keymap-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.keymap-row label {
+  font-size: 13px;
+  color: #aaa;
+  width: 80px;
+}
+
+.keymap-row input {
+  width: 60px;
+  text-align: center;
+}
+
+/* Radio */
+.radio-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.radio-group label {
+  font-size: 14px;
+  color: #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.status {
+  font-size: 13px;
+  color: #4caf50;
+  transition: opacity 0.3s;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #555;
+  border-top-color: #ff4444;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
