@@ -1,8 +1,8 @@
-# Builds Chrome Web Store package and optionally publishes it.
+# Builds Chrome Web Store ZIP, creates GitHub Release, optionally publishes to CWS.
 #
 # Triggers:
 #   - Push a tag like v1.3.0  → builds ZIP, creates GitHub Release, uploads to CWS
-#   - Manual dispatch          → same, pick any ref
+#   - Manual dispatch          → reads version from manifest.json, creates tag + release
 #
 # Secrets needed for auto-publish (optional):
 #   CHROME_EXTENSION_ID   – your extension ID from CWS dashboard
@@ -10,7 +10,7 @@
 #   CHROME_CLIENT_SECRET  – OAuth2 client secret
 #   CHROME_REFRESH_TOKEN  – OAuth2 refresh token
 #
-# Without secrets the workflow still produces the ZIP as a GitHub Release artifact.
+# Without CWS secrets the workflow still produces the ZIP as a GitHub Release asset.
 
 name: Release
 
@@ -20,8 +20,11 @@ on:
       - "v*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     env:
       HAS_CWS_SECRETS: ${{ secrets.CHROME_CLIENT_ID != '' }}
@@ -29,13 +32,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Read version from manifest
         id: meta
         run: |
           VERSION=$(jq -r '.version' manifest.json)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "zip_name=flipfeed-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Check tag exists
+        id: tag_check
+        run: |
+          if git rev-parse "refs/tags/${{ steps.meta.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push tag
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          git tag "${{ steps.meta.outputs.tag }}"
+          git push origin "${{ steps.meta.outputs.tag }}"
 
       - name: Build ZIP
         run: |
@@ -51,23 +72,18 @@ jobs:
             assets/icon48.png \
             assets/icon128.png
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.meta.outputs.zip_name }}
-          path: ${{ steps.meta.outputs.zip_name }}
-
-      # ── GitHub Release (on tag push) ──────────────────────────
+      # ── GitHub Release ──────────────────────────
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: FlipFeed ${{ steps.meta.outputs.tag }}
           files: ${{ steps.meta.outputs.zip_name }}
           generate_release_notes: true
 
       # ── Chrome Web Store upload (only if secrets are configured) ──
       - name: Publish to Chrome Web Store
-        if: startsWith(github.ref, 'refs/tags/') && env.HAS_CWS_SECRETS == 'true'
+        if: env.HAS_CWS_SECRETS == 'true'
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
           file-path: ${{ steps.meta.outputs.zip_name }}
