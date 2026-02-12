@@ -3,6 +3,20 @@
    Loaded by background.js, contentScript.js, and options.html.
    ============================================================ */
 
+const FF_DEFAULT_CHANNELS = Object.freeze([
+  { url: 'https://www.youtube.com/@mkbhd',          displayName: 'MKBHD',           iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@veritasium',      displayName: 'Veritasium',       iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@LinusTechTips',   displayName: 'Linus Tech Tips',  iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@kurzgesagt',      displayName: 'Kurzgesagt',       iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@3blue1brown',     displayName: '3Blue1Brown',      iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@MarkRober',       displayName: 'Mark Rober',       iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@smartereveryday',  displayName: 'SmarterEveryDay', iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@ColdFusion',      displayName: 'ColdFusion',       iconUrl: '', channelId: '' },
+  { url: 'https://www.youtube.com/@TomScottGo',      displayName: 'Tom Scott',        iconUrl: '', channelId: '' }
+]);
+
+const FF_DEFAULT_KEY_MAP = Object.freeze({ 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7, 9:8 });
+
 const FF_CONFIG = Object.freeze({
   GRID_SLOTS: Object.freeze({ '3x3': 9, '3x4': 12, '3x5': 15, '3x6': 18 }),
   STORAGE_KEYS: Object.freeze(['channels', 'pages', 'keyMap', 'openMode', 'zapAction', 'gridSize']),

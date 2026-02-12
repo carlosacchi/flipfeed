@@ -16,7 +16,39 @@ body {
 }
 
 header {
-  margin-bottom: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #121212;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #333;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 h1 {
@@ -26,6 +58,7 @@ h1 {
   display: flex;
   align-items: baseline;
   gap: 10px;
+  margin: 0;
 }
 
 .version {
@@ -37,7 +70,7 @@ h1 {
 .subtitle {
   color: #888;
   font-size: 14px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 h2 {
@@ -191,6 +224,13 @@ input[type="text"]:focus {
 }
 .btn-remove:hover { background: #c62828; color: #fff; }
 
+.btn-reset {
+  background: transparent;
+  border: 1px solid #555;
+  color: #888;
+}
+.btn-reset:hover { border-color: #ff4444; color: #ccc; }
+
 /* Key map */
 .keymap-row {
   display: flex;
@@ -226,13 +266,7 @@ input[type="text"]:focus {
   gap: 6px;
 }
 
-/* Actions */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
+/* Status */
 
 .status {
   font-size: 13px;

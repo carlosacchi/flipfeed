@@ -224,6 +224,28 @@
     channelsList.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
   });
 
+  // --------------- reset to defaults ---------------
+  const resetBtn = document.getElementById('reset-defaults');
+  resetBtn.addEventListener('click', () => {
+    if (!confirm('Replace all channels and settings with defaults?')) return;
+    channels = FF_DEFAULT_CHANNELS.map(ch => ({ ...ch }));
+    keyMap = { ...FF_DEFAULT_KEY_MAP };
+    openMode = FF_CONFIG.DEFAULTS.openMode;
+    zapAction = FF_CONFIG.DEFAULTS.zapAction;
+    gridSize = FF_CONFIG.DEFAULTS.gridSize;
+
+    const r1 = document.querySelector(`input[name="openMode"][value="${openMode}"]`);
+    if (r1) r1.checked = true;
+    const r2 = document.querySelector(`input[name="zapAction"][value="${zapAction}"]`);
+    if (r2) r2.checked = true;
+    const r3 = document.querySelector(`input[name="gridSize"][value="${gridSize}"]`);
+    if (r3) r3.checked = true;
+
+    renderChannels();
+    renderKeyMap();
+    flash('Defaults restored — click Save to persist');
+  });
+
   // --------------- save ---------------
   saveBtn.addEventListener('click', async () => {
     openMode = document.querySelector('input[name="openMode"]:checked')?.value || FF_CONFIG.DEFAULTS.openMode;

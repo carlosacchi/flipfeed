@@ -118,6 +118,12 @@
     const titleWrap = document.createElement('div');
     titleWrap.className = 'ff-title-wrap';
 
+    const logo = document.createElement('img');
+    logo.className = 'ff-logo';
+    logo.src = chrome.runtime.getURL('assets/icon48.png');
+    logo.alt = 'FlipFeed';
+    titleWrap.appendChild(logo);
+
     const title = document.createElement('span');
     title.className = 'ff-title';
     title.textContent = 'FlipFeed';
@@ -376,8 +382,14 @@
 
       .ff-title-wrap {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 6px;
+      }
+
+      .ff-logo {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
       }
 
       .ff-title {

@@ -11,20 +11,7 @@ const RSS_BASE = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
 const rssCache = new Map();       // channelId → { ts, entries[] }
 const durationCache = new Map();  // videoId  → { ts, seconds }
 
-// --------------- seed data ---------------
-const DEFAULT_CHANNELS = [
-  { url: 'https://www.youtube.com/@mkbhd',          displayName: 'MKBHD',           iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@veritasium',      displayName: 'Veritasium',       iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@LinusTechTips',   displayName: 'Linus Tech Tips',  iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@kurzgesagt',      displayName: 'Kurzgesagt',       iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@3blue1brown',     displayName: '3Blue1Brown',      iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@MarkRober',        displayName: 'Mark Rober',        iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@smartereveryday',  displayName: 'SmarterEveryDay', iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@ColdFusion',      displayName: 'ColdFusion',       iconUrl: '', channelId: '' },
-  { url: 'https://www.youtube.com/@TomScottGo',      displayName: 'Tom Scott',        iconUrl: '', channelId: '' }
-];
-
-const DEFAULT_KEY_MAP = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7, 9:8 };
+// Seed data from shared.js: FF_DEFAULT_CHANNELS, FF_DEFAULT_KEY_MAP
 
 // --------------- fetch with timeout helper ---------------
 function fetchWithTimeout(url, timeoutMs = FF_CONFIG.FETCH_TIMEOUT_MS) {
@@ -53,8 +40,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   // Fresh install seed
   if (details.reason === 'install' && !data.channels) {
     await ffStorage.set({
-      channels: DEFAULT_CHANNELS,
-      keyMap: DEFAULT_KEY_MAP,
+      channels: FF_DEFAULT_CHANNELS,
+      keyMap: FF_DEFAULT_KEY_MAP,
       openMode: FF_CONFIG.DEFAULTS.openMode,
       zapAction: FF_CONFIG.DEFAULTS.zapAction,
       gridSize: FF_CONFIG.DEFAULTS.gridSize
