@@ -79,10 +79,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch((err) => sendResponse({ error: err.message }));
     return true;
   }
-  if (msg.type === 'OPEN_OPTIONS') {
-    chrome.runtime.openOptionsPage();
-    return false;
-  }
 });
 
 // --------------- zap logic ---------------
@@ -164,16 +160,14 @@ async function handleAddCurrentChannel(pageUrl, absoluteIndex) {
   const { data } = await ffStorage.get(['channels']);
   const channels = data.channels || [];
 
-  // Check duplicates
-  const resolvedUrl = pageUrl.replace(/\/$/, '').toLowerCase();
-  for (const ch of channels) {
-    if (!ch || !ch.url) continue;
-    const existingUrl = ch.url.replace(/\/$/, '').toLowerCase();
-    if (existingUrl === resolvedUrl) {
-      return { error: 'duplicate', displayName: ch.displayName || ch.url };
-    }
-    if (resolved.channelId && ch.channelId && ch.channelId === resolved.channelId) {
-      return { error: 'duplicate', displayName: ch.displayName || ch.url };
+  // Check duplicates — only by channelId (most reliable)
+  // URL comparison is unreliable: @Handle vs /channel/UC... can point to the same channel
+  if (resolved.channelId) {
+    for (const ch of channels) {
+      if (!ch || !ch.channelId) continue;
+      if (ch.channelId === resolved.channelId) {
+        return { error: 'duplicate', displayName: ch.displayName || ch.url };
+      }
     }
   }
 

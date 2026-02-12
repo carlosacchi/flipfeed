@@ -36,7 +36,7 @@
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'sync' && area !== 'local') return;
     const relevant = FF_CONFIG.STORAGE_KEYS.some(k => k in changes);
-    if (!relevant) return;
+    if (!relevant || ('_widgetOpen' in changes && Object.keys(changes).length === 1)) return;
     await loadSettings();
     if (widgetVisible) render();
   });
@@ -52,11 +52,13 @@
     render();
     hostEl.style.display = 'block';
     widgetVisible = true;
+    chrome.storage.local.set({ _widgetOpen: true });
   }
 
   function hideWidget() {
     if (hostEl) hostEl.style.display = 'none';
     widgetVisible = false;
+    chrome.storage.local.set({ _widgetOpen: false });
   }
 
   // --------------- settings ---------------
@@ -98,8 +100,9 @@
 
   // --------------- detect if on a channel page ---------------
   function detectChannelUrl() {
-    const url = location.href;
-    const match = url.match(/^https:\/\/www\.youtube\.com\/(@[\w.-]+|channel\/UC[\w-]+|c\/[\w.-]+|user\/[\w.-]+)(\/.*)?$/);
+    // Use pathname only (ignore query params and hash)
+    const path = location.pathname;
+    const match = path.match(/^\/(@[\w.-]+|channel\/UC[\w-]+|c\/[\w.-]+|user\/[\w.-]+)(\/.*)?$/);
     if (match) return 'https://www.youtube.com/' + match[1];
     return null;
   }
@@ -191,8 +194,8 @@
         }
 
         btn.addEventListener('click', () => zapChannel(ch));
-      } else {
-        // empty slot → "Add channel"
+      } else if (channelPageUrl) {
+        // empty slot on a channel page → "Add current channel"
         btn.classList.add('ff-add-btn');
 
         const plusIcon = document.createElement('span');
@@ -205,13 +208,14 @@
         label.textContent = 'Add channel';
         btn.appendChild(label);
 
-        if (channelPageUrl) {
-          btn.addEventListener('click', () => addCurrentChannel(channelPageUrl, absoluteIdx, btn));
-        } else {
-          btn.addEventListener('click', () => {
-            chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
-          });
-        }
+        btn.addEventListener('click', () => addCurrentChannel(channelPageUrl, absoluteIdx, btn));
+      } else {
+        // empty slot (not on a channel page)
+        btn.classList.add('ff-empty');
+        const empty = document.createElement('span');
+        empty.className = 'ff-name';
+        empty.textContent = `Slot ${absoluteIdx + 1}`;
+        btn.appendChild(empty);
       }
 
       grid.appendChild(btn);
@@ -259,7 +263,6 @@
 
   // --------------- zap ---------------
   function zapChannel(channel) {
-    hideWidget();
     chrome.runtime.sendMessage({ type: 'ZAP_CHANNEL', channel, openMode, zapAction }, (result) => {
       if (chrome.runtime.lastError) {
         showToast('Zap failed: ' + chrome.runtime.lastError.message);
@@ -579,4 +582,9 @@
       @keyframes ff-toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     `;
   }
+
+  // --------------- auto-restore widget after page navigation ---------------
+  chrome.storage.local.get('_widgetOpen', (result) => {
+    if (result._widgetOpen) showWidget();
+  });
 })();

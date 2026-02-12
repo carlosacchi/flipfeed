@@ -2,6 +2,17 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.4.6] — 2026-02-12
+
+### Changed
+- Widget stays open during zapping — closes only via X, ESC, or Alt+Z (true zapping UX).
+- Widget auto-restores after same-tab navigation (open state persisted in storage).
+
+### Fixed
+- "Add channel" button appears only on channel pages, not on homepage or video pages.
+- Channel page detection handles URLs with query params (`?si=...`, `?feature=...`).
+- Duplicate detection uses channelId only (eliminates false "Already saved" from URL mismatches).
+
 ## [1.4.2] — 2026-02-12
 
 ### Added
