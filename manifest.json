@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FlipFeed — Video zapping for YouTube",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "description": "Zap between YouTube channels with a quick overlay widget. Configure your favorite channels and switch instantly.",
   "permissions": [
     "storage",

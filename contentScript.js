@@ -34,6 +34,15 @@
     return channels.slice(currentPage * s, (currentPage + 1) * s);
   }
 
+  // Persist current page to storage
+  function persistCurrentPage() {
+    try {
+      chrome.storage.local.set({ _widgetPage: currentPage });
+    } catch (e) {
+      // Extension context invalidated - ignore
+    }
+  }
+
   // --------------- message from background ---------------
   try {
     chrome.runtime.onMessage.addListener((msg) => {
@@ -68,6 +77,18 @@
 
   async function showWidget() {
     await loadSettings();
+    // Restore last page position
+    try {
+      const result = await chrome.storage.local.get('_widgetPage');
+      if (result._widgetPage !== undefined && result._widgetPage >= 0) {
+        currentPage = result._widgetPage;
+        // Clamp to valid range after loading settings
+        const tp = totalPages();
+        if (currentPage >= tp) currentPage = Math.max(0, tp - 1);
+      }
+    } catch (e) {
+      // Extension context invalidated - ignore
+    }
     ensureHost();
     render();
     hostEl.style.display = 'block';
@@ -301,7 +322,7 @@
       prevBtn.className = 'ff-nav-btn';
       prevBtn.textContent = '\u25C0';
       prevBtn.disabled = currentPage <= 0;
-      prevBtn.addEventListener('click', () => { currentPage--; render(); });
+      prevBtn.addEventListener('click', () => { currentPage--; persistCurrentPage(); render(); });
       footer.appendChild(prevBtn);
 
       const pageLabel = document.createElement('span');
@@ -313,7 +334,7 @@
       nextBtn.className = 'ff-nav-btn';
       nextBtn.textContent = '\u25B6';
       nextBtn.disabled = currentPage >= tp - 1;
-      nextBtn.addEventListener('click', () => { currentPage++; render(); });
+      nextBtn.addEventListener('click', () => { currentPage++; persistCurrentPage(); render(); });
       footer.appendChild(nextBtn);
 
       container.appendChild(footer);
@@ -429,6 +450,7 @@
       e.preventDefault();
       e.stopPropagation();
       currentPage--;
+      persistCurrentPage();
       render();
       return;
     }
@@ -436,6 +458,7 @@
       e.preventDefault();
       e.stopPropagation();
       currentPage++;
+      persistCurrentPage();
       render();
       return;
     }
@@ -704,8 +727,11 @@
 
   // --------------- auto-restore widget after page navigation ---------------
   try {
-    chrome.storage.local.get('_widgetOpen', (result) => {
+    chrome.storage.local.get(['_widgetOpen', '_widgetPage'], (result) => {
       if (chrome.runtime.lastError) return; // Extension context invalidated
+      if (result._widgetPage !== undefined && result._widgetPage >= 0) {
+        currentPage = result._widgetPage;
+      }
       if (result._widgetOpen) showWidget();
     });
   } catch (e) {

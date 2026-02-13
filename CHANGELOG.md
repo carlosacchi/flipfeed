@@ -2,6 +2,11 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.6.7] — 2026-02-13
+
+### Added
+- **Widget page persistence**: when you click a channel from page 2 (or any page), the widget remembers your position and reopens on the same page next time. No more resetting to page 1 after every zap.
+
 ## [1.6.6] — 2026-02-13
 
 ### Fixed
