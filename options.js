@@ -14,6 +14,9 @@
   const keymapList = document.getElementById('keymap-list');
   const versionEl = document.getElementById('version');
 
+  const CHANNELS_PER_PAGE = 30;
+  let channelsPage = 0;  // 0-indexed
+
   let channels = [];  // flat array
   let keyMap = {};
   let openMode = FF_CONFIG.DEFAULTS.openMode;
@@ -47,7 +50,24 @@
   function renderChannels() {
     channelsList.innerHTML = '';
 
-    channels.forEach((ch, i) => {
+    // Clamp page
+    const totalPages = Math.max(1, Math.ceil(channels.length / CHANNELS_PER_PAGE));
+    if (channelsPage >= totalPages) channelsPage = totalPages - 1;
+    if (channelsPage < 0) channelsPage = 0;
+
+    // Pagination controls (top)
+    if (channels.length > CHANNELS_PER_PAGE) {
+      const paginationTop = createPaginationControls();
+      channelsList.appendChild(paginationTop);
+    }
+
+    // Slice channels for current page
+    const start = channelsPage * CHANNELS_PER_PAGE;
+    const end = start + CHANNELS_PER_PAGE;
+    const visibleChannels = channels.slice(start, end);
+
+    visibleChannels.forEach((ch, localIdx) => {
+      const i = start + localIdx; // absolute index
       const row = document.createElement('div');
       row.className = 'channel-row';
       row.draggable = true;
@@ -97,18 +117,73 @@
       channelsList.appendChild(row);
     });
 
+    // Pagination controls (bottom)
+    if (channels.length > CHANNELS_PER_PAGE) {
+      const paginationBottom = createPaginationControls();
+      channelsList.appendChild(paginationBottom);
+    }
+
     // button events
     channelsList.querySelectorAll('.btn-resolve').forEach((btn) => {
       btn.addEventListener('click', () => resolveChannel(parseInt(btn.dataset.idx)));
     });
     channelsList.querySelectorAll('.btn-remove').forEach((btn) => {
-      btn.addEventListener('click', () => { channels.splice(parseInt(btn.dataset.idx), 1); renderChannels(); });
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.idx);
+        channels.splice(idx, 1);
+        // If deleted last item on page, go to previous page
+        const totalPages = Math.max(1, Math.ceil(channels.length / CHANNELS_PER_PAGE));
+        if (channelsPage >= totalPages) channelsPage = totalPages - 1;
+        renderChannels();
+      });
     });
     channelsList.querySelectorAll('.ch-url').forEach((input) => {
       const row = input.closest('.channel-row');
       const i = parseInt(row.dataset.idx);
       input.addEventListener('change', () => { channels[i].url = input.value.trim(); });
     });
+  }
+
+  function createPaginationControls() {
+    const totalPages = Math.max(1, Math.ceil(channels.length / CHANNELS_PER_PAGE));
+    const start = channelsPage * CHANNELS_PER_PAGE + 1;
+    const end = Math.min(start + CHANNELS_PER_PAGE - 1, channels.length);
+
+    const nav = document.createElement('div');
+    nav.className = 'channels-pagination';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'btn btn-small btn-secondary';
+    prevBtn.textContent = '◀ Previous';
+    prevBtn.disabled = channelsPage <= 0;
+    prevBtn.addEventListener('click', () => {
+      if (channelsPage > 0) {
+        channelsPage--;
+        renderChannels();
+        channelsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    nav.appendChild(prevBtn);
+
+    const info = document.createElement('span');
+    info.className = 'pagination-info';
+    info.textContent = `${start}–${end} of ${channels.length}`;
+    nav.appendChild(info);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn btn-small btn-secondary';
+    nextBtn.textContent = 'Next ▶';
+    nextBtn.disabled = channelsPage >= totalPages - 1;
+    nextBtn.addEventListener('click', () => {
+      if (channelsPage < totalPages - 1) {
+        channelsPage++;
+        renderChannels();
+        channelsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    nav.appendChild(nextBtn);
+
+    return nav;
   }
 
   // --------------- drag & drop reorder ---------------
@@ -220,6 +295,9 @@
   // --------------- add channel ---------------
   addBtn.addEventListener('click', () => {
     channels.push({ url: '', displayName: '', iconUrl: '', channelId: '' });
+    // Navigate to last page when adding a channel
+    const totalPages = Math.max(1, Math.ceil(channels.length / CHANNELS_PER_PAGE));
+    channelsPage = totalPages - 1;
     renderChannels();
     channelsList.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
   });

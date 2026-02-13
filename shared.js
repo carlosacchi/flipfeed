@@ -47,40 +47,113 @@ function isSafeImageUrl(url) {
   } catch { return false; }
 }
 
-// --------------- storage helpers with sync→local fallback ---------------
-// Each operation independently tries sync first; no sticky per-context flag.
-// set() writes to both backends for cross-context consistency.
-// remove() cleans both backends to avoid stale keys.
+// --------------- storage helpers with split backend ---------------
+// Storage architecture (v1.6.0+):
+// - channels: stored in chrome.storage.local (5-10MB limit) to support large lists (100+ channels)
+// - keyMap, openMode, zapAction, gridSize: stored in chrome.storage.sync (cross-device sync)
+// - Legacy 'pages' key: removed from both backends when detected
+//
+// This split avoids chrome.storage.sync QUOTA_BYTES_PER_ITEM limit (8KB per item),
+// which was causing silent failures when saving 30+ channels.
 const ffStorage = {
   async get(keys) {
+    const keysArray = Array.isArray(keys) ? keys : [keys];
+    const channelKeys = keysArray.filter(k => k === 'channels' || k === 'pages');
+    const syncKeys = keysArray.filter(k => k !== 'channels' && k !== 'pages');
+
     return new Promise((resolve) => {
-      chrome.storage.sync.get(keys, (data) => {
-        if (chrome.runtime.lastError) {
-          chrome.storage.local.get(keys, (localData) => {
-            resolve({ data: localData || {}, fallback: true });
-          });
-        } else {
-          resolve({ data, fallback: false });
-        }
+      let localData = {};
+      let syncData = {};
+      let pending = 2;
+      let syncFallback = false;
+
+      // Fetch channels from local
+      chrome.storage.local.get(channelKeys, (result) => {
+        localData = result || {};
+        if (--pending === 0) finish();
       });
+
+      // Fetch settings from sync (with fallback to local)
+      if (syncKeys.length > 0) {
+        chrome.storage.sync.get(syncKeys, (result) => {
+          if (chrome.runtime.lastError) {
+            // Sync failed — fallback to local for these keys too
+            syncFallback = true;
+            chrome.storage.local.get(syncKeys, (localResult) => {
+              syncData = localResult || {};
+              if (--pending === 0) finish();
+            });
+          } else {
+            syncData = result || {};
+            if (--pending === 0) finish();
+          }
+        });
+      } else {
+        if (--pending === 0) finish();
+      }
+
+      function finish() {
+        resolve({ data: { ...localData, ...syncData }, fallback: syncFallback });
+      }
     });
   },
 
   async set(obj) {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.set(obj, () => {
-        if (chrome.runtime.lastError) {
-          // Sync failed — write to local as primary
-          chrome.storage.local.set(obj, () => {
-            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-            else resolve({ fallback: true });
-          });
+      const channelObj = {};
+      const syncObj = {};
+
+      for (const [key, value] of Object.entries(obj)) {
+        if (key === 'channels') {
+          channelObj[key] = value;
         } else {
-          // Sync succeeded — mirror to local for cross-context consistency
-          chrome.storage.local.set(obj, () => { /* best-effort */ });
-          resolve({ fallback: false });
+          syncObj[key] = value;
         }
-      });
+      }
+
+      let pending = 0;
+      let syncFallback = false;
+      const errors = [];
+
+      function finish() {
+        if (--pending > 0) return;
+        if (errors.length > 0) reject(new Error(errors.join('; ')));
+        else resolve({ fallback: syncFallback });
+      }
+
+      // Save channels to local
+      if (Object.keys(channelObj).length > 0) {
+        pending++;
+        chrome.storage.local.set(channelObj, () => {
+          if (chrome.runtime.lastError) {
+            errors.push('local(channels): ' + chrome.runtime.lastError.message);
+          }
+          finish();
+        });
+      }
+
+      // Save settings to sync (with fallback to local)
+      if (Object.keys(syncObj).length > 0) {
+        pending++;
+        chrome.storage.sync.set(syncObj, () => {
+          if (chrome.runtime.lastError) {
+            // Sync failed — fallback to local
+            syncFallback = true;
+            chrome.storage.local.set(syncObj, () => {
+              if (chrome.runtime.lastError) {
+                errors.push('local(settings fallback): ' + chrome.runtime.lastError.message);
+              }
+              finish();
+            });
+          } else {
+            // Sync succeeded — mirror to local for consistency
+            chrome.storage.local.set(syncObj, () => { /* best-effort */ });
+            finish();
+          }
+        });
+      }
+
+      if (pending === 0) resolve({ fallback: false });
     });
   },
 

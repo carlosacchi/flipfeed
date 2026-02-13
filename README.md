@@ -68,7 +68,7 @@ Right-click the extension icon → **Options** (or go to `chrome://extensions` �
 - **Fetch timeout** — all network requests abort after 8 seconds to prevent stalls
 - **Concurrent duration checks** — batches of 3 with early-win for faster Short detection
 - **URL validation** — only YouTube URLs are navigated; icon URLs restricted to trusted Google domains
-- **Storage fallback** — automatically falls back to `chrome.storage.local` if sync is unavailable
+- **Split storage architecture** — channels stored in `chrome.storage.local` (5-10MB limit, supports 100+ channels); settings (`keyMap`, `openMode`, `zapAction`, `gridSize`) stored in `chrome.storage.sync` for cross-device sync. This avoids `chrome.storage.sync` quota limits (8KB per item, 100KB total).
 - **Live sync** — widget auto-refreshes when settings change in the options page
 
 ### Permissions used

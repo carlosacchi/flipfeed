@@ -295,3 +295,24 @@ input[type="text"]:focus {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Channels pagination */
+.channels-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid #333;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: #888;
+  font-weight: 600;
+  min-width: 100px;
+  text-align: center;
+}

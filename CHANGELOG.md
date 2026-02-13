@@ -2,6 +2,17 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.6.1] — 2026-02-13
+
+### Added
+- **Channels list pagination** in Options page: displays 30 channels per page with Previous/Next navigation controls. Prevents long scrolling when managing large channel lists (100+ channels).
+
+## [1.6.0] — 2026-02-13
+
+### Changed
+- **Storage architecture redesign**: channels now stored in `chrome.storage.local` (5-10MB limit) to support large lists (100+ channels). Settings (`keyMap`, `openMode`, `zapAction`, `gridSize`) remain in `chrome.storage.sync` for cross-device synchronization.
+- Fixes silent save failures when adding 30+ channels (previously hit `chrome.storage.sync` 8KB per-item quota limit).
+
 ## [1.5.0] — 2026-02-12
 
 ### Added
