@@ -2,6 +2,21 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.6.4] — 2026-02-13
+
+### Fixed
+- "Extension context invalidated" error when reloading extension while YouTube is open. Added proper error handling for storage operations.
+
+## [1.6.3] — 2026-02-13
+
+### Changed
+- Improved widget header layout: settings and close buttons now properly aligned to the right with elegant separator (|) between them.
+
+## [1.6.2] — 2026-02-13
+
+### Added
+- **Settings button** in widget header: gear icon (⚙️) opens Options page directly from the widget. Includes rotate animation on hover.
+
 ## [1.6.1] — 2026-02-13
 
 ### Added

@@ -57,13 +57,21 @@
     render();
     hostEl.style.display = 'block';
     widgetVisible = true;
-    chrome.storage.local.set({ _widgetOpen: true });
+    try {
+      chrome.storage.local.set({ _widgetOpen: true });
+    } catch (e) {
+      // Extension context invalidated (reload/update) - ignore
+    }
   }
 
   function hideWidget() {
     if (hostEl) hostEl.style.display = 'none';
     widgetVisible = false;
-    chrome.storage.local.set({ _widgetOpen: false });
+    try {
+      chrome.storage.local.set({ _widgetOpen: false });
+    } catch (e) {
+      // Extension context invalidated (reload/update) - ignore
+    }
   }
 
   // --------------- settings ---------------
@@ -153,12 +161,31 @@
 
     header.appendChild(titleWrap);
 
+    const buttonsWrap = document.createElement('div');
+    buttonsWrap.className = 'ff-header-buttons';
+
+    const optionsBtn = document.createElement('button');
+    optionsBtn.className = 'ff-options-btn';
+    optionsBtn.textContent = '\u2699'; // ⚙ gear icon
+    optionsBtn.title = 'Open settings';
+    optionsBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+    });
+    buttonsWrap.appendChild(optionsBtn);
+
+    const separator = document.createElement('span');
+    separator.className = 'ff-separator';
+    separator.textContent = '|';
+    buttonsWrap.appendChild(separator);
+
     const closeBtn = document.createElement('button');
     closeBtn.className = 'ff-close';
     closeBtn.textContent = '\u00D7';
     closeBtn.title = 'Close (ESC)';
     closeBtn.addEventListener('click', hideWidget);
-    header.appendChild(closeBtn);
+    buttonsWrap.appendChild(closeBtn);
+
+    header.appendChild(buttonsWrap);
 
     container.appendChild(header);
 
@@ -431,6 +458,34 @@
         font-weight: 400;
       }
 
+      .ff-header-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ff-separator {
+        color: #444;
+        font-size: 16px;
+        line-height: 1;
+        user-select: none;
+      }
+
+      .ff-options-btn {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 18px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0 4px;
+        transition: color 0.15s, transform 0.15s;
+      }
+      .ff-options-btn:hover {
+        color: #fff;
+        transform: rotate(30deg);
+      }
+
       .ff-close {
         background: none;
         border: none;
@@ -598,7 +653,12 @@
   }
 
   // --------------- auto-restore widget after page navigation ---------------
-  chrome.storage.local.get('_widgetOpen', (result) => {
-    if (result._widgetOpen) showWidget();
-  });
+  try {
+    chrome.storage.local.get('_widgetOpen', (result) => {
+      if (chrome.runtime.lastError) return; // Extension context invalidated
+      if (result._widgetOpen) showWidget();
+    });
+  } catch (e) {
+    // Extension context invalidated (reload/update) - ignore
+  }
 })();
