@@ -1,75 +1,84 @@
-# FlipFeed — Video zapping for YouTube
+# FlipFeed — Your YouTube Remote Control
 
-Chrome extension that lets you "zap" between your favorite YouTube channels via a quick overlay widget. Select a channel and instantly jump to its latest non-Short video.
+**FlipFeed** is the Chrome extension that transforms YouTube into your personal TV. Just like channel surfing with a classic remote control, you can instantly zap between your favorite YouTube channels — no searching, no scrolling, just press a key and watch.
+
+An intelligent overlay widget lets you jump directly to the latest video (skipping Shorts) from any saved channel. Think of FlipFeed as your **YouTube channel hopper**: fast, customizable, and always one keyboard shortcut away.
 
 ## Install
 
-**[Get FlipFeed on the Chrome Web Store](https://chromewebstore.google.com/detail/flipfeed)**
+**[Get FlipFeed on the Chrome Web Store](https://chromewebstore.google.com/detail/flipfeed)** — Install your YouTube remote control in seconds.
 
 Or load it manually for development:
 
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable **Developer mode** (toggle in top-right)
 3. Click **Load unpacked** and select this folder
-4. The extension is ready — navigate to YouTube to use it
+4. The extension is ready — navigate to YouTube and start zapping
 
-## Usage
+## Usage — Start Channel Surfing
 
 ### Toggle the widget
-Press **Alt+Z** (default shortcut) on any YouTube page to show/hide the zapping widget in the bottom-right corner.
+Press **Alt+Z** (default shortcut) on any YouTube page to summon your channel remote control in the bottom-right corner. Press it again to hide.
 
-To customize the shortcut: go to `chrome://extensions/shortcuts` and change the "Show/hide the FlipFeed zapping widget" binding.
+**Pro tip:** Customize the shortcut at `chrome://extensions/shortcuts` and change the "Show/hide the FlipFeed zapping widget" binding.
 
-### Zap to a channel
+### Zap to a channel — Instant navigation
 - **Click** any channel button in the widget, or
 - Press the mapped **number key** (1–9 by default) while the widget is visible
 
-### Zap action
+It's like pressing channel buttons on a TV remote — instant, satisfying, and addictive.
+
+### Zap action — Choose your landing
 Configurable in Options:
-- **Latest video** (default): opens the most recent non-Short video via RSS
-- **Channel page**: opens the channel's videos page sorted by latest
+- **Latest video** (default): opens the most recent non-Short video via RSS feed intelligence
+- **Channel page**: opens the channel's videos page sorted by latest uploads
 
-### Add current channel
-When browsing a YouTube channel page, open the widget — empty slots show an **"+ Add channel"** button. Click it to save the current channel directly (duplicate detection included).
+### Add current channel — One-click save
+When browsing a YouTube channel page, open the widget and look for empty slots showing an **"+ Add channel"** button. Click it to instantly save the current channel (smart duplicate detection included).
 
-### Grid size & pagination
-Choose your preferred grid layout in Options: **3x3**, **3x4**, **3x5**, or **3x6**. If you have more channels than slots, use the **left/right arrows** (or Arrow keys) to navigate pages.
+### Grid size & pagination — Scale to your needs
+Choose your preferred remote control layout in Options: **3x3**, **3x4**, **3x5**, or **3x6** grids. Got more channels than slots? Use the **left/right arrows** (or keyboard Arrow keys) to navigate pages. The widget remembers your last page position.
 
 ### Close the widget
 - Press **ESC**, or
-- Click the **x** button
+- Click the **✕** close button
 
-## Configuration
+## Configuration — Customize Your Remote
 
 Right-click the extension icon → **Options** (or go to `chrome://extensions` → FlipFeed → Details → Extension options).
 
-### Channels
-- Add unlimited YouTube channels (drag to reorder)
-- Paste a URL in any format: `@handle`, `/channel/UC...`, `/user/...`, or vanity URL
+### Channels — Your personal lineup
+- Add **unlimited** YouTube channels and drag to reorder (pagination with 30 channels per page)
+- Paste any YouTube URL format: `@handle`, `/channel/UC...`, `/user/...`, or vanity URLs
 - Click **Resolve** to auto-detect channel ID, display name, and avatar
 - If auto-resolve fails, fill in the name and icon URL manually
-- **Reset to defaults** to restore the original channel list
+- **Set as my defaults**: save your current configuration as a personal snapshot
+- **Reset to my defaults**: restore your saved personal configuration
+- **Reset to factory**: restore the original default channels
 
-### Key mapping
-- Map any key to a channel slot (defaults: 1–9)
-- Key mapping applies to the current visible page
+### Key mapping — Program your buttons
+- Map any keyboard key to a channel slot (defaults: 1–9, like classic TV remotes)
+- Key bindings apply to the currently visible widget page
 
-### Open mode
-- **Same tab** (default): navigates the current tab
-- **New tab**: opens a new tab for each zap
+### Open mode — Navigation behavior
+- **Same tab** (default): smooth navigation in the current tab, like changing TV channels
+- **New tab**: opens each zap in a new tab (multitasking mode)
 
-## Technical details
+## Technical details — Under the hood
 
-- **Manifest V3** — no build step, vanilla JS + HTML + CSS
-- **Shadow DOM** — widget CSS is isolated from YouTube
-- **RSS-based zapping** — no YouTube API key needed
-- **Short filtering** — fetches video duration from watch pages, skips videos <= 61 seconds
-- **Caching** — RSS and duration results cached for 60 seconds to reduce requests
-- **Fetch timeout** — all network requests abort after 8 seconds to prevent stalls
-- **Concurrent duration checks** — batches of 3 with early-win for faster Short detection
-- **URL validation** — only YouTube URLs are navigated; icon URLs restricted to trusted Google domains
-- **Split storage architecture** — channels stored in `chrome.storage.local` (5-10MB limit, supports 100+ channels); settings (`keyMap`, `openMode`, `zapAction`, `gridSize`) stored in `chrome.storage.sync` for cross-device sync. This avoids `chrome.storage.sync` quota limits (8KB per item, 100KB total).
-- **Live sync** — widget auto-refreshes when settings change in the options page
+Built for speed, privacy, and reliability:
+
+- **Manifest V3** — modern Chrome extension standard, no build step required (vanilla JS + HTML + CSS)
+- **Shadow DOM** — widget CSS is perfectly isolated from YouTube's styling
+- **RSS-based intelligence** — no YouTube API key needed, works directly with YouTube feeds
+- **Smart Short filtering** — automatically detects and skips videos <= 61 seconds by fetching duration metadata
+- **Smart caching** — RSS and duration results cached for 60 seconds to minimize network requests
+- **Fetch timeout** — all network requests abort after 8 seconds to prevent hanging
+- **Concurrent duration checks** — processes batches of 3 videos with early-win strategy for lightning-fast Short detection
+- **URL validation** — strict security: only YouTube URLs are navigated; icon URLs restricted to trusted Google domains
+- **Split storage architecture** — channels stored in `chrome.storage.local` (5-10MB limit, supports 100+ channels); settings (`keyMap`, `openMode`, `zapAction`, `gridSize`) stored in `chrome.storage.sync` for cross-device synchronization. This smart split avoids `chrome.storage.sync` quota limits (8KB per item, 100KB total).
+- **Live sync** — widget auto-refreshes instantly when you save settings in the options page
+- **Context resilience** — comprehensive error handling protects against extension reloads and Chrome API invalidation
 
 ### Permissions used
 | Permission | Reason |
@@ -98,6 +107,14 @@ Created and maintained by **Carlo Sacchi**.
 ## License
 
 This software is proprietary. See [LICENSE](LICENSE) for terms.
+
+---
+
+## Keywords & SEO
+
+**YouTube extension**, **channel zapping**, **YouTube remote control**, **channel surfing**, **YouTube channel hopper**, **keyboard shortcuts YouTube**, **YouTube productivity**, **YouTube navigation**, **quick channel switch**, **YouTube overlay widget**, **channel switcher**, **YouTube TV mode**, **fast YouTube navigation**, **YouTube channel manager**, **Chrome extension for YouTube**, **YouTube zapper**, **instant channel switch**, **YouTube automation**, **channel favorites**, **YouTube tools**, **video surfing**, **content discovery**, **YouTube workflow**, **RSS YouTube**, **skip YouTube Shorts**, **YouTube power user**, **YouTube keyboard navigation**, **YouTube channel organizer**
+
+---
 
 ## Changelog
 
