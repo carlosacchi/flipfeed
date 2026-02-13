@@ -6,7 +6,7 @@ An intelligent overlay widget lets you jump directly to the latest video (skippi
 
 ## Install
 
-**[Get FlipFeed on the Chrome Web Store](https://chromewebstore.google.com/detail/flipfeed)** — Install your YouTube remote control in seconds.
+**[Get FlipFeed on the Chrome Web Store](https://chromewebstore.google.com/detail/flipfeed-%E2%80%94-video-zapping/hgpnhgogfocccboaommnmmhcgpgijnnj)** — Install your YouTube remote control in seconds.
 
 Or load it manually for development:
 
