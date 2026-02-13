@@ -6,7 +6,14 @@
 (() => {
   'use strict';
 
-  const VERSION = chrome.runtime.getManifest().version;
+  // Check if extension context is valid
+  let VERSION = '1.0.0';
+  try {
+    VERSION = chrome.runtime?.getManifest?.()?.version || '1.0.0';
+  } catch (e) {
+    // Extension context invalidated - use fallback
+  }
+
   // FF_CONFIG, isSafeImageUrl loaded from shared.js (injected before this script)
 
   let widgetVisible = false;
@@ -28,18 +35,26 @@
   }
 
   // --------------- message from background ---------------
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === 'TOGGLE_WIDGET') toggleWidget();
-  });
+  try {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'TOGGLE_WIDGET') toggleWidget();
+    });
+  } catch (e) {
+    // Extension context invalidated - ignore
+  }
 
   // --------------- auto-refresh on storage changes (e.g. from options page) ---------------
-  chrome.storage.onChanged.addListener(async (changes, area) => {
-    if (area !== 'sync' && area !== 'local') return;
-    const relevant = FF_CONFIG.STORAGE_KEYS.some(k => k in changes);
-    if (!relevant || ('_widgetOpen' in changes && Object.keys(changes).length === 1)) return;
-    await loadSettings();
-    if (widgetVisible) render();
-  });
+  try {
+    chrome.storage.onChanged.addListener(async (changes, area) => {
+      if (area !== 'sync' && area !== 'local') return;
+      const relevant = FF_CONFIG.STORAGE_KEYS.some(k => k in changes);
+      if (!relevant || ('_widgetOpen' in changes && Object.keys(changes).length === 1)) return;
+      await loadSettings();
+      if (widgetVisible) render();
+    });
+  } catch (e) {
+    // Extension context invalidated - ignore
+  }
 
   // --------------- re-render on YouTube SPA navigation ---------------
   document.addEventListener('yt-navigate-finish', () => {
@@ -145,9 +160,13 @@
 
     const logo = document.createElement('img');
     logo.className = 'ff-logo';
-    logo.src = chrome.runtime.getURL('assets/icon48.png');
+    try {
+      logo.src = chrome.runtime?.getURL?.('assets/icon48.png') || '';
+    } catch (e) {
+      logo.src = ''; // Extension context invalidated
+    }
     logo.alt = 'FlipFeed';
-    titleWrap.appendChild(logo);
+    if (logo.src) titleWrap.appendChild(logo);
 
     const title = document.createElement('span');
     title.className = 'ff-title';
@@ -169,7 +188,15 @@
     optionsBtn.textContent = '\u2699'; // ⚙ gear icon
     optionsBtn.title = 'Open settings';
     optionsBtn.addEventListener('click', () => {
-      chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+      try {
+        chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' }, () => {
+          if (chrome.runtime.lastError) {
+            // Extension context invalidated - ignore
+          }
+        });
+      } catch (e) {
+        // Extension context invalidated (reload/update) - ignore
+      }
     });
     buttonsWrap.appendChild(optionsBtn);
 
@@ -304,15 +331,19 @@
 
   // --------------- zap ---------------
   function zapChannel(channel) {
-    chrome.runtime.sendMessage({ type: 'ZAP_CHANNEL', channel, openMode, zapAction }, (result) => {
-      if (chrome.runtime.lastError) {
-        showToast('Zap failed: ' + chrome.runtime.lastError.message);
-        return;
-      }
-      if (result && result.error) {
-        showToast('Zap failed: ' + result.error);
-      }
-    });
+    try {
+      chrome.runtime.sendMessage({ type: 'ZAP_CHANNEL', channel, openMode, zapAction }, (result) => {
+        if (chrome.runtime.lastError) {
+          showToast('Zap failed: ' + chrome.runtime.lastError.message);
+          return;
+        }
+        if (result && result.error) {
+          showToast('Zap failed: ' + result.error);
+        }
+      });
+    } catch (e) {
+      // Extension context invalidated (reload/update) - ignore
+    }
   }
 
   function showToast(message) {
@@ -329,12 +360,24 @@
     btnEl.classList.add('ff-loading');
     btnEl.innerHTML = '<span class="ff-spinner"></span>';
 
-    const result = await new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { type: 'ADD_CURRENT_CHANNEL', url: channelUrl, absoluteIndex },
-        resolve
-      );
-    });
+    let result;
+    try {
+      result = await new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { type: 'ADD_CURRENT_CHANNEL', url: channelUrl, absoluteIndex },
+          (resp) => {
+            if (chrome.runtime.lastError) {
+              resolve({ error: chrome.runtime.lastError.message });
+            } else {
+              resolve(resp);
+            }
+          }
+        );
+      });
+    } catch (e) {
+      // Extension context invalidated
+      result = { error: 'Extension context invalidated' };
+    }
 
     if (result && result.error === 'duplicate') {
       btnEl.classList.remove('ff-loading');
@@ -345,6 +388,13 @@
       warn.textContent = 'Already saved';
       btnEl.appendChild(warn);
       setTimeout(() => render(), 1500);
+      return;
+    }
+
+    if (result && result.error) {
+      // Show error but don't crash
+      btnEl.classList.remove('ff-loading');
+      render();
       return;
     }
 

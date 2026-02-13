@@ -2,6 +2,16 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.6.6] — 2026-02-13
+
+### Fixed
+- Comprehensive protection for ALL Chrome API calls: `getManifest()`, `getURL()`, `onMessage`, `onChanged` listeners. Extension now fully resilient to context invalidation.
+
+## [1.6.5] — 2026-02-13
+
+### Fixed
+- Complete error handling for all `chrome.runtime.sendMessage` calls (zap, add channel, open settings). Prevents crashes when extension is reloaded.
+
 ## [1.6.4] — 2026-02-13
 
 ### Fixed
