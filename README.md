@@ -1,8 +1,8 @@
 # FlipFeed — Your YouTube Remote Control
 
-**FlipFeed** is the Chrome extension that transforms YouTube into your personal TV. Just like channel surfing with a classic remote control, you can instantly zap between your favorite YouTube channels — no searching, no scrolling, just press a key and watch.
+**Stop letting the algorithm pick what you watch.** FlipFeed is the Chrome extension that turns YouTube into your personal TV: a curated lineup of *your* favorite channels, one keyboard key per channel, instant zap. No feed, no rabbit hole, no autoplay surprises — just the channels you chose, the way a remote control was meant to work.
 
-An intelligent overlay widget lets you jump directly to the latest video (skipping Shorts) from any saved channel. Think of FlipFeed as your **YouTube channel hopper**: fast, customizable, and always one keyboard shortcut away.
+An overlay widget lets you jump directly to the latest video (skipping Shorts) from any saved channel. Press a key, change channel. That's it.
 
 ## Install
 
@@ -14,6 +14,17 @@ Or load it manually for development:
 2. Enable **Developer mode** (toggle in top-right)
 3. Click **Load unpacked** and select this folder
 4. The extension is ready — navigate to YouTube and start zapping
+
+## Why FlipFeed?
+
+YouTube is great. The algorithm-driven feed, less so — endless scroll, recommendations you didn't ask for, Shorts ambushing your watch session. FlipFeed gives you back the one thing the homepage took away: **deliberate choice**.
+
+- **You pick the channels, not the algorithm.** Your lineup is fixed, visible, and yours.
+- **One key, one channel.** Like a TV remote — press `1`, you're on channel one. Press `2`, channel two. No menus, no scrolling.
+- **Latest video, no Shorts.** FlipFeed jumps you to the most recent real video on the channel, automatically skipping Shorts.
+- **No feed, no rabbit hole.** Open the widget, change channel, watch. Close it. Done.
+
+It's YouTube as a tool, not a slot machine.
 
 ## Usage — Start Channel Surfing
 

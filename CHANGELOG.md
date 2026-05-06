@@ -2,6 +2,12 @@
 
 All notable changes to FlipFeed are documented in this file.
 
+## [1.6.9] — 2026-05-06
+
+### Changed
+- **README narrative refresh**: rewritten hero section and added a new "Why FlipFeed?" section to better articulate the product philosophy — taking back control of YouTube from the algorithm, using it like a TV with a curated channel lineup.
+- **Manifest description**: updated to align with the new positioning (auto-syncs to the Chrome Web Store listing Summary on next release).
+
 ## [1.6.7] — 2026-02-13
 
 ### Added
